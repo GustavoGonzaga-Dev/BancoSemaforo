@@ -1,5 +1,6 @@
 package controller;
 
+import java.text.DecimalFormat;
 import java.util.concurrent.Semaphore;
 
 public class ThreadBanco extends Thread {
@@ -9,6 +10,8 @@ public class ThreadBanco extends Thread {
 	private double saldoConta;
 	private double saldoAtual;
 	private Semaphore semaforo;
+	private String formato = "R$ #,##0.00";
+    private DecimalFormat d = new DecimalFormat(formato);
 
 	public ThreadBanco(int codConta, double saldoConta, double valorTransicao, int tipoTransicao, Semaphore semaforo) {
 		this.codConta = codConta;
@@ -20,7 +23,6 @@ public class ThreadBanco extends Thread {
 
 	@Override
 	public void run() {
-
 		try {
 			semaforo.acquire();
 			if (tipoTransicao == 2) {
@@ -28,31 +30,29 @@ public class ThreadBanco extends Thread {
 			} else {
 				Saque();
 			}
-			
 			sleep(1000);
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		} finally {
 			semaforo.release();
 		}
-
 	}
 
 	public void Saque() {
 		if (valorTransicao > saldoConta) {
-			System.out.println("Seu saldo atual: R$" + saldoConta + "\n Valor de saque requirido: R$" + valorTransicao);
+			System.out.println("Conta numero: "+codConta+"# Seu saldo atual: R$" + d.format(saldoConta) + "\n Valor de saque requirido: R$" + d.format(valorTransicao));
 			System.out.println("Valor requirido não existe na sua conta, operação negada");
 		} else {
-			System.out.println("Seu saldo atual: R$" + saldoConta + "\n Valor de saque requirido: R$" + valorTransicao);
+			System.out.println("Conta numero: "+codConta+"# Seu saldo atual: R$" + d.format(saldoConta) + "\n Valor de saque requirido: R$" + d.format(valorTransicao));
 			saldoAtual = saldoConta - valorTransicao;
-			System.out.println("valor permitido, saque: R$" + valorTransicao + "\n Saldo atual: R$" + saldoAtual);
+			System.out.println("valor permitido, saque: R$" + valorTransicao + "\n Saldo atual: R$" + d.format(saldoAtual));
 		}
 	}
 
 	public void Deposito() {
-		System.out.println("Seu saldo atual: R$" + saldoConta + "\n Valor de deposito: R$" + valorTransicao);
+		System.out.println("Conta numero: "+codConta+"# Seu saldo atual: R$" + d.format(saldoConta) + "\n Valor de deposito: R$" + d.format(valorTransicao));
 		saldoConta = saldoConta + valorTransicao;
-		System.out.println("Saldo atual: R$" + saldoConta);
+		System.out.println("Saldo atual: R$" + d.format(saldoConta));
 	}
 
 }
