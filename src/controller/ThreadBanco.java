@@ -9,35 +9,45 @@ public class ThreadBanco extends Thread {
 	private double valorTransicao;
 	private double saldoConta;
 	private double saldoAtual;
-	private Semaphore semaforo;
-	private String formato = "R$ #,##0.00";
+	private Semaphore saque;
+	private Semaphore deposito;
+	private String formato = "0.00";
     private DecimalFormat d = new DecimalFormat(formato);
 
-	public ThreadBanco(int codConta, double saldoConta, double valorTransicao, int tipoTransicao, Semaphore semaforo) {
+	public ThreadBanco(int codConta, double saldoConta, double valorTransicao, int tipoTransicao, Semaphore saque, Semaphore deposito) {
 		this.codConta = codConta;
 		this.saldoConta = saldoConta;
 		this.valorTransicao = valorTransicao;
 		this.tipoTransicao = tipoTransicao;
-		this.semaforo = semaforo;
+		this.saque = saque;
+		this.deposito = deposito;
 	}
 
 	@Override
 	public void run() {
-		try {
-			semaforo.acquire();
-			if (tipoTransicao == 2) {
-				Deposito();
-			} else {
+		if (tipoTransicao == 1) {
+			try {
+				saque.acquire();
 				Saque();
+				sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} finally {
+				saque.release();
 			}
-			sleep(1000);
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-		} finally {
-			semaforo.release();
+		} else {
+			try {
+				deposito.acquire();
+				Deposito();
+				sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} finally {
+				deposito.release();
+			}
 		}
 	}
-
+	
 	public void Saque() {
 		if (valorTransicao > saldoConta) {
 			System.out.println("Conta numero: "+codConta+"# Seu saldo atual: R$" + d.format(saldoConta) + "\n Valor de saque requirido: R$" + d.format(valorTransicao));
@@ -45,7 +55,7 @@ public class ThreadBanco extends Thread {
 		} else {
 			System.out.println("Conta numero: "+codConta+"# Seu saldo atual: R$" + d.format(saldoConta) + "\n Valor de saque requirido: R$" + d.format(valorTransicao));
 			saldoAtual = saldoConta - valorTransicao;
-			System.out.println("valor permitido, saque: R$" + valorTransicao + "\n Saldo atual: R$" + d.format(saldoAtual));
+			System.out.println("valor permitido, saque: R$" + d.format(valorTransicao) + "\n Saldo atual: R$" + d.format(saldoAtual));
 		}
 	}
 
